@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FY 2026-27 Income Tax Calculator</title>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-hover: #115e59;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --text: #1e293b;
+            --accent: #f1f5f9;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+
+        .results-card {
+            background-color: var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .results-card h3 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 18px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 8px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .result-row.highlight {
+            font-weight: bold;
+            font-size: 18px;
+            color: #0f172a;
+            border-top: 1px dashed var(--border);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: #475569;
+        }
+        button.secondary:hover {
+            background-color: #334155;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            button { display: none; }
+            input { border: none; background: transparent; padding: 0; font-weight: bold; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🇮🇳 Income Tax Calculator</h2>
+        <div class="subtitle">Financial Year 2026–27 (New Tax Regime)</div>
+
+        <div class="form-group">
+            <label for="income">Enter Gross Annual Income / Salary (₹):</label>
+            <input type="number" id="income" value="1275000" placeholder="e.g. 1200000" oninput="calculateTax()">
+        </div>
+
+        <div class="results-card">
+            <h3>Calculation Breakdown</h3>
+            <div class="result-row">
+                <span>Gross Income:</span>
+                <span id="res-gross">₹12,75,000</span>
+            </div>
+            <div class="result-row">
+                <span>Standard Deduction:</span>
+                <span>- ₹75,000</span>
+            </div>
+            <div class="result-row highlight-sub">
+                <span>Taxable Income:</span>
+                <span id="res-taxable">₹12,00,000</span>
+            </div>
+            <div class="result-row">
+                <span>Computed Slab Tax:</span>
+                <span id="res-slab-tax">₹60,000</span>
+            </div>
+            <div class="result-row">
+                <span>Section 87A Rebate:</span>
+                <span id="res-rebate">- ₹60,000</span>
+            </div>
+            <div class="result-row">
+                <span>Health & Education Cess (4%):</span>
+                <span id="res-cess">₹0</span>
+            </div>
+            <div class="result-row highlight">
+                <span>Total Net Tax Payable:</span>
+                <span id="res-final-tax" style="color: #0f766e;">₹0</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button onclick="calculateTax()">Calculate Tax</button>
+            <button class="secondary" onclick="window.print()">🖨️ Print / Save Report</button>
+        </div>
+    </div>
+
+    <script>
+        function formatINR(amount) {
+            return '₹ ' + Math.round(amount).toLocaleString('en-IN');
+        }
+
+        function calculateTax() {
+            let gross = parseFloat(document.getElementById('income').value) || 0;
+            
+            // 1. Standard Deduction for FY 2026-27 is ₹75,000 under New Regime
+            let standardDeduction = 75000;
+            let taxableIncome = Math.max(0, gross - standardDeduction);
+
+            // 2. Compute Slab Tax for FY 2026-27 (New Regime)
+            // Up to 4L: 0%
+            // 4L to 8L: 5%
+            // 8L to 12L: 10%
+            // 12L to 16L: 15%
+            // 16L to 20L: 20%
+            // 20L to 24L: 25%
+            // Above 24L: 30%
+            let slabTax = 0;
+            if (taxableIncome > 400000) {
+                if (taxableIncome <= 800000) {
+                    slabTax = (taxableIncome - 400000) * 0.05;
+                } else if (taxableIncome <= 1200000) {
+                    slabTax = (400000 * 0.05) + (taxableIncome - 800000) * 0.10;
+                } else if (taxableIncome <= 1600000) {
+                    slabTax = (400000 * 0.05) + (400000 * 0.10) + (taxableIncome - 1200000) * 0.15;
+                } else if (taxableIncome <= 2000000) {
+                    slabTax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (taxableIncome - 1600000) * 0.20;
+                } else if (taxableIncome <= 2400000) {
+                    slabTax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (400000 * 0.20) + (taxableIncome - 2000000) * 0.25;
+                } else {
+                    slabTax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (400000 * 0.20) + (400000 * 0.25) + (taxableIncome - 2400000) * 0.30;
+                }
+            }
+
+            // 3. Section 87A Rebate (Tax-free up to ₹12 Lakhs taxable income, max rebate ₹60,000)
+            let rebate = 0;
+            if (taxableIncome <= 1200000) {
+                rebate = slabTax; // Fully zeros out tax up to 12L taxable income
+            }
+
+            let taxAfterRebate = Math.max(0, slabTax - rebate);
+
+            // 4. Health & Education Cess (4%)
+            let cess = taxAfterRebate * 0.04;
+            let finalTax = taxAfterRebate + cess;
+
+            // Update UI elements
+            document.getElementById('res-gross').textContent = formatINR(gross);
+            document.getElementById('res-taxable').textContent = formatINR(taxableIncome);
+            document.getElementById('res-slab-tax').textContent = formatINR(slabTax);
+            document.getElementById('res-rebate').textContent = '- ' + formatINR(rebate);
+            document.getElementById('res-cess').textContent = formatINR(cess);
+            document.getElementById('res-final-tax').textContent = formatINR(finalTax);
+        }
+
+        // Run on load
+        window.onload = calculateTax;
+    </script>
+</body>
+</html>
